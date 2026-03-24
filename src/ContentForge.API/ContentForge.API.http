@@ -1,0 +1,6 @@
+@ContentForge.API_HostAddress = http://localhost:5212
+
+GET {{ContentForge.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
