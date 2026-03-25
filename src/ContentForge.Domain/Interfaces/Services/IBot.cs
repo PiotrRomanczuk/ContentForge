@@ -2,11 +2,11 @@ using ContentForge.Domain.Enums;
 
 namespace ContentForge.Domain.Interfaces.Services;
 
-/// <summary>
-/// Defines a content bot category — its supported types, languages, and prompt templates.
-/// Content is generated externally (e.g. via Claude Code) and imported through the API.
-/// Prompt templates help the operator generate content with consistent quality.
-/// </summary>
+// Interface = like a TypeScript `interface`. Defines a contract that classes must implement.
+// In JS you'd just duck-type it; in C# the compiler enforces it.
+//
+// Each bot (EnglishFactsBot, HoroscopeBot) implements this to define what content
+// it can generate and provide prompt templates for external AI tools.
 public interface IBotDefinition
 {
     string Name { get; }

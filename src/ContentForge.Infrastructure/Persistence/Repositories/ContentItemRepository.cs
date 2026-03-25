@@ -5,10 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ContentForge.Infrastructure.Persistence.Repositories;
 
+// Extends the generic Repository with content-specific queries.
+// `: base(context)` = super(context) — passes the DB context to the parent constructor.
 public class ContentItemRepository : Repository<ContentItem>, IContentItemRepository
 {
     public ContentItemRepository(ContentForgeDbContext context) : base(context) { }
 
+    // LINQ query chain — reads like: DbSet.filter().sort().toArray()
+    // .Where() = .filter(), .OrderByDescending() = .sort((a,b) => b.date - a.date)
+    // EF translates this chain into a single SQL query (SELECT ... WHERE ... ORDER BY ...).
     public async Task<IReadOnlyList<ContentItem>> GetByStatusAsync(
         ContentStatus status, CancellationToken cancellationToken = default)
         => await DbSet
@@ -23,6 +28,7 @@ public class ContentItemRepository : Repository<ContentItem>, IContentItemReposi
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync(cancellationToken);
 
+    // .Skip() + .Take() = pagination, like .offset().limit() in Prisma/Knex.
     public async Task<IReadOnlyList<ContentItem>> GetPendingApprovalAsync(
         int skip = 0, int take = 50, CancellationToken cancellationToken = default)
         => await DbSet
@@ -45,6 +51,9 @@ public class ContentItemRepository : Repository<ContentItem>, IContentItemReposi
         ContentStatus status, CancellationToken cancellationToken = default)
         => await DbSet.CountAsync(c => c.Status == status, cancellationToken);
 
+    // ExecuteUpdateAsync = bulk UPDATE in one SQL statement (no loading entities into memory).
+    // Like: UPDATE content_items SET status = $1, updated_at = $2 WHERE id = ANY($3)
+    // Much faster than loading + modifying + saving each entity individually.
     public async Task BulkUpdateStatusAsync(
         IEnumerable<Guid> ids, ContentStatus status, CancellationToken cancellationToken = default)
     {

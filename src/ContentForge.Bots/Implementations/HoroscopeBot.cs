@@ -5,6 +5,7 @@ namespace ContentForge.Bots.Implementations;
 
 public class HoroscopeBot : IBotDefinition
 {
+    // `static readonly` = shared across all instances, set once. Like a module-level const in JS.
     public static readonly string[] ZodiacSigns =
     {
         "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",

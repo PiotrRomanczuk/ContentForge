@@ -21,6 +21,9 @@ public class SocialAccountConfiguration : IEntityTypeConfiguration<SocialAccount
         builder.Property(a => a.Metadata)
             .HasColumnType("jsonb");
 
+        // Composite unique index — ensures no two rows have the same (Platform, ExternalId) pair.
+        // Like: CREATE UNIQUE INDEX ON social_accounts (platform, external_id)
+        // `new { a.Platform, a.ExternalId }` = anonymous object (like an object literal in JS).
         builder.HasIndex(a => new { a.Platform, a.ExternalId }).IsUnique();
     }
 }

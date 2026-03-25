@@ -6,11 +6,19 @@ using Microsoft.Extensions.Logging;
 
 namespace ContentForge.Application.Commands.ApproveContent;
 
+// IRequestHandler<TCommand, TResult> = handles a specific MediatR command.
+// Like an Express route handler but decoupled from HTTP — the controller sends
+// the command via _mediator.Send(), MediatR finds this handler via DI and calls Handle().
+// This keeps business logic out of controllers (like moving logic from routes to services in Express).
 public class BulkApproveHandler : IRequestHandler<BulkApproveCommand, BulkApprovalResultDto>
 {
+    // _ prefix = C# convention for private fields (like #private in JS classes).
+    // readonly = can only be set in constructor (like Object.freeze on the reference).
     private readonly IContentItemRepository _contentRepository;
     private readonly ILogger<BulkApproveHandler> _logger;
 
+    // Constructor injection — the DI container auto-provides these when creating this handler.
+    // Like getting dependencies from a DI container in NestJS, but built into the framework.
     public BulkApproveHandler(
         IContentItemRepository contentRepository,
         ILogger<BulkApproveHandler> logger)
@@ -19,6 +27,7 @@ public class BulkApproveHandler : IRequestHandler<BulkApproveCommand, BulkApprov
         _logger = logger;
     }
 
+    // This is the method MediatR calls when the command is dispatched.
     public async Task<BulkApprovalResultDto> Handle(
         BulkApproveCommand request, CancellationToken cancellationToken)
     {

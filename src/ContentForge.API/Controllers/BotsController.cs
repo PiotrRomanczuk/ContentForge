@@ -18,12 +18,10 @@ public class BotsController : ControllerBase
         _botRegistry = botRegistry;
     }
 
-    /// <summary>
-    /// List all registered bot definitions.
-    /// </summary>
     [HttpGet]
     public ActionResult<IReadOnlyList<BotInfoDto>> GetAll()
     {
+        // .Select() = .map() in JS. Transforms each bot into a DTO for the API response.
         var bots = _botRegistry.GetAllBots()
             .Select(b => new BotInfoDto(b.Name, b.Category, b.Description, b.SupportedContentTypes))
             .ToList();

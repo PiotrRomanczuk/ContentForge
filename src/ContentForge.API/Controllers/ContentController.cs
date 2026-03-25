@@ -9,12 +9,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ContentForge.API.Controllers;
 
+// [Authorize] on the class = all endpoints require a valid JWT token.
+// Like wrapping all routes in an auth middleware: router.use(requireAuth).
 [ApiController]
 [Route("api/content")]
 [Authorize]
 public class ContentController : ControllerBase
 {
     private readonly IContentItemRepository _contentRepository;
+    // IMediator = MediatR's dispatcher. Like an event bus — you Send() a command,
+    // it finds the matching handler and returns the result. Keeps controllers thin.
     private readonly IMediator _mediator;
     private readonly ILogger<ContentController> _logger;
 
@@ -32,6 +36,9 @@ public class ContentController : ControllerBase
     /// Import content generated externally (e.g. from Claude Code).
     /// Accepts single items or batches.
     /// </summary>
+    // async Task<ActionResult<T>> = like async (req, res): Promise<Response<T>> in Express.
+    // ActionResult<T> = can return Ok(data) or NotFound() or BadRequest() — typed response.
+    // CancellationToken = auto-provided by ASP.NET, cancelled if the client disconnects.
     [HttpPost("import")]
     public async Task<ActionResult<ContentBatchResultDto>> Import(
         [FromBody] ImportContentRequest request,
@@ -44,6 +51,8 @@ public class ContentController : ControllerBase
         {
             try
             {
+                // Object initializer syntax — like { botName: item.botName, ... } in JS.
+                // Enum.Parse<ContentType>("Image") = converts string to enum value.
                 var entity = new ContentItem
                 {
                     BotName = item.BotName,
@@ -107,11 +116,15 @@ public class ContentController : ControllerBase
     /// <summary>
     /// Get content by status.
     /// </summary>
+    // [FromQuery] = reads from URL query params. Like req.query.status in Express.
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<ContentItemDto>>> GetByStatus(
         [FromQuery] string? status = null,
         CancellationToken cancellationToken = default)
     {
+        // Enum.TryParse = safe parse that returns true/false instead of throwing.
+        // `out var parsed` = if successful, the parsed enum value is assigned to `parsed`.
+        // Like: const parsed = tryParseEnum(status); if (parsed) { ... }
         var items = status != null && Enum.TryParse<ContentStatus>(status, true, out var parsed)
             ? await _contentRepository.GetByStatusAsync(parsed, cancellationToken)
             : await _contentRepository.GetAllAsync(cancellationToken);
@@ -125,11 +138,13 @@ public class ContentController : ControllerBase
     /// <summary>
     /// Get content item by ID.
     /// </summary>
+    // {id:guid} = route parameter with type constraint. Like /content/:id but only matches UUIDs.
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ContentItemDto>> GetById(
         Guid id, CancellationToken cancellationToken)
     {
         var item = await _contentRepository.GetByIdAsync(id, cancellationToken);
+        // `is null` = null check (like === null in JS). `is` is pattern matching syntax.
         if (item is null) return NotFound();
 
         return Ok(new ContentItemDto(
@@ -146,6 +161,8 @@ public class ContentController : ControllerBase
         CancellationToken cancellationToken)
     {
         var stats = new Dictionary<string, int>();
+        // Enum.GetValues<T>() = gets all enum members as an array.
+        // Like Object.values(ContentStatus) in JS.
         foreach (var status in Enum.GetValues<ContentStatus>())
         {
             stats[status.ToString()] = await _contentRepository

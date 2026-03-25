@@ -1,5 +1,12 @@
 namespace ContentForge.Domain.Interfaces.Repositories;
 
+// Generic repository interface — like a base DAO/service in JS.
+// `IRepository<T>` = a TypeScript generic: `interface IRepository<T>`.
+// `where T : class` = constraint: T must be a reference type (no primitives like int).
+//
+// CancellationToken = like AbortController.signal in fetch(). Lets the caller cancel
+// long-running DB operations (e.g., if the HTTP request is aborted by the client).
+// `= default` means callers can omit it — it'll just be a no-op token.
 public interface IRepository<T> where T : class
 {
     Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);

@@ -2,6 +2,10 @@ using ContentForge.Domain.Enums;
 
 namespace ContentForge.Application.DTOs;
 
+// `record` = immutable data class. Like Object.freeze({ id, botName, ... }) in JS.
+// Records auto-generate equals, hashCode, and toString — perfect for DTOs.
+// The constructor syntax here is shorthand: each parameter becomes a public property.
+// Equivalent TS: type ContentItemDto = Readonly<{ id: string; botName: string; ... }>
 public record ContentItemDto(
     Guid Id,
     string BotName,

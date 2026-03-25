@@ -2,6 +2,8 @@ using ContentForge.Domain.Enums;
 
 namespace ContentForge.Domain.Interfaces.Services;
 
+// Not implemented yet. Will use SixLabors.ImageSharp (like sharp/canvas in Node.js)
+// to render text content into social media images/carousels.
 public interface IMediaRenderer
 {
     Task<string> RenderImageAsync(
