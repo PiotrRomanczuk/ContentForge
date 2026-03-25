@@ -1,6 +1,7 @@
 using ContentForge.Application.Services;
 using ContentForge.Domain.Interfaces.Repositories;
 using ContentForge.Domain.Interfaces.Services;
+using ContentForge.Infrastructure.Services.Graph;
 using ContentForge.Infrastructure.Persistence;
 using ContentForge.Infrastructure.Persistence.Repositories;
 using ContentForge.Infrastructure.Services;
@@ -75,6 +76,13 @@ public static class DependencyInjection
         // Security — token encryption for social account access tokens at rest
         services.AddDataProtection();
         services.AddScoped<ITokenEncryptionService, DataProtectionTokenEncryptionService>();
+
+        // Content graph — entity extraction, KNN similarity, Louvain clustering.
+        // Scoped = new instance per HTTP request (like per-request service in Express).
+        services.AddScoped<IContentEntityRepository, ContentEntityRepository>();
+        services.AddScoped<IContentEmbeddingRepository, ContentEmbeddingRepository>();
+        services.AddScoped<IContentClusterRepository, ContentClusterRepository>();
+        services.AddScoped<IContentGraphService, ContentGraphService>();
 
         // Scheduling — repositories and Hangfire job management
         services.AddScoped<IScheduleConfigRepository, ScheduleConfigRepository>();
