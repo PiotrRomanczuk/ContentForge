@@ -1,6 +1,13 @@
 ## .NET
 bin/
 obj/
+
+## Rendered media output
+rendered-media/
+
+## Environment-specific settings (use dotnet user-secrets for local dev)
+appsettings.Development.json
+appsettings.Production.json
 *.user
 *.suo
 *.userosscache
@@ -38,6 +45,9 @@ appsettings.Production.json
 
 ## Docker
 docker-compose.override.yml
+
+## Logs
+logs/
 
 ## OS
 .DS_Store

@@ -2,6 +2,10 @@ using ContentForge.Domain.Enums;
 
 namespace ContentForge.Application.DTOs;
 
+// `record` = immutable data class. Like Object.freeze({ id, botName, ... }) in JS.
+// Records auto-generate equals, hashCode, and toString — perfect for DTOs.
+// The constructor syntax here is shorthand: each parameter becomes a public property.
+// Equivalent TS: type ContentItemDto = Readonly<{ id: string; botName: string; ... }>
 public record ContentItemDto(
     Guid Id,
     string BotName,
@@ -18,7 +22,8 @@ public record ContentBatchResultDto(
     int TotalGenerated,
     int Succeeded,
     int Failed,
-    IReadOnlyList<ContentItemDto> Items);
+    IReadOnlyList<ContentItemDto> Items,
+    IReadOnlyList<string> Errors);
 
 public record BotInfoDto(
     string Name,
@@ -53,3 +58,15 @@ public record BulkApprovalResultDto(
     int Approved,
     int Rejected,
     int Edited);
+
+// Import request DTOs — used by the API layer and validated by ImportContentItemValidator.
+// Defined here (Application layer) so validators can reference them without circular dependencies.
+public record ImportContentRequest(IReadOnlyList<ImportContentItemDto> Items);
+
+public record ImportContentItemDto(
+    string BotName,
+    string Category,
+    string ContentType,
+    string TextContent,
+    DateTime? ScheduledAt = null,
+    Dictionary<string, string>? Properties = null);

@@ -3,6 +3,9 @@ using ContentForge.Domain.Enums;
 
 namespace ContentForge.Domain.Interfaces.Repositories;
 
+// Extends the generic repo with content-specific queries.
+// Like creating a contentService that extends a base CrudService in Express,
+// adding methods like getByStatus(), getPending(), etc.
 public interface IContentItemRepository : IRepository<ContentItem>
 {
     Task<IReadOnlyList<ContentItem>> GetByStatusAsync(

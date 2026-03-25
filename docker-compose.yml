@@ -6,8 +6,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=contentforge;Username=postgres;Password=postgres
-      - Auth__ApiKey=${CONTENTFORGE_API_KEY:-dev-api-key-change-me}
-      - Auth__JwtSecret=${CONTENTFORGE_JWT_SECRET:-dev-jwt-secret-must-be-at-least-32-chars}
+      # REQUIRED: Set these in .env or shell — no fallback defaults for security
+      - Auth__ApiKey=${CONTENTFORGE_API_KEY:?Set CONTENTFORGE_API_KEY in .env}
+      - Auth__JwtSecret=${CONTENTFORGE_JWT_SECRET:?Set CONTENTFORGE_JWT_SECRET in .env}
       - Auth__Issuer=ContentForge
       - Auth__Audience=ContentForge-API
       - Auth__TokenExpirationHours=24

@@ -3,6 +3,8 @@ using ContentForge.Domain.Interfaces.Services;
 
 namespace ContentForge.Bots.Implementations;
 
+// A concrete bot definition — implements IBotDefinition with specific prompt templates.
+// `=>` on properties = expression-bodied members. Like: get name() { return "EnglishFactsBot"; }
 public class EnglishFactsBot : IBotDefinition
 {
     public string Name => "EnglishFactsBot";
@@ -15,6 +17,10 @@ public class EnglishFactsBot : IBotDefinition
     };
     public IReadOnlyList<string> SupportedLanguages => new[] { "pl", "en" };
 
+    // Switch expression with tuple pattern matching — C# equivalent of:
+    // if (contentType === 'Carousel' && language === 'pl') return '...'
+    // else if (contentType === 'Carousel') return '...'  // _ = wildcard, matches anything
+    // The `"""..."""` syntax = raw string literal (like template literals in JS but multi-line).
     public string GetPromptTemplate(ContentType contentType, string language) => (contentType, language) switch
     {
         (ContentType.Carousel, "pl") => """
