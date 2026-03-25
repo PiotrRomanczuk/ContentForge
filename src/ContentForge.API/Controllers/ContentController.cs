@@ -1,8 +1,13 @@
 using ContentForge.Application.Commands.ApproveContent;
+using ContentForge.Application.Commands.PublishContent;
+using ContentForge.Application.Commands.RenderContent;
 using ContentForge.Application.DTOs;
+using ContentForge.Application.Validators;
 using ContentForge.Domain.Entities;
 using ContentForge.Domain.Enums;
 using ContentForge.Domain.Interfaces.Repositories;
+using ContentForge.Domain.Interfaces.Services;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,14 +27,18 @@ public class ContentController : ControllerBase
     private readonly IMediator _mediator;
     private readonly ILogger<ContentController> _logger;
 
+    private readonly IValidator<ImportContentItemDto> _importItemValidator;
+
     public ContentController(
         IContentItemRepository contentRepository,
         IMediator mediator,
-        ILogger<ContentController> logger)
+        ILogger<ContentController> logger,
+        IValidator<ImportContentItemDto> importItemValidator)
     {
         _contentRepository = contentRepository;
         _mediator = mediator;
         _logger = logger;
+        _importItemValidator = importItemValidator;
     }
 
     /// <summary>
@@ -45,14 +54,21 @@ public class ContentController : ControllerBase
         CancellationToken cancellationToken)
     {
         var items = new List<ContentItemDto>();
-        var failed = 0;
+        var errors = new List<string>();
 
         foreach (var item in request.Items)
         {
+            // Validate each item via FluentValidation instead of relying on try/catch.
+            var validation = await _importItemValidator.ValidateAsync(item, cancellationToken);
+            if (!validation.IsValid)
+            {
+                var messages = string.Join("; ", validation.Errors.Select(e => e.ErrorMessage));
+                errors.Add($"[{item.BotName}] {messages}");
+                continue;
+            }
+
             try
             {
-                // Object initializer syntax — like { botName: item.botName, ... } in JS.
-                // Enum.Parse<ContentType>("Image") = converts string to enum value.
                 var entity = new ContentItem
                 {
                     BotName = item.BotName,
@@ -73,14 +89,14 @@ public class ContentController : ControllerBase
             }
             catch (Exception ex)
             {
-                failed++;
+                errors.Add($"[{item.BotName}] {ex.Message}");
                 _logger.LogError(ex, "Failed to import content item: {BotName}", item.BotName);
             }
         }
 
-        _logger.LogInformation("Imported {Count} items ({Failed} failed)", items.Count, failed);
+        _logger.LogInformation("Imported {Count} items ({Failed} failed)", items.Count, errors.Count);
 
-        return Ok(new ContentBatchResultDto(request.Items.Count, items.Count, failed, items));
+        return Ok(new ContentBatchResultDto(request.Items.Count, items.Count, errors.Count, items, errors));
     }
 
     /// <summary>
@@ -92,6 +108,9 @@ public class ContentController : ControllerBase
         [FromQuery] int take = 50,
         CancellationToken cancellationToken = default)
     {
+        // M-3: Clamp pagination to prevent DoS via unbounded queries
+        take = Math.Clamp(take, 1, 200);
+        _logger.LogDebug("Retrieving pending content (skip: {Skip}, take: {Take})", skip, take);
         var items = await _contentRepository.GetPendingApprovalAsync(skip, take, cancellationToken);
 
         return Ok(items.Select(i => new ContentItemDto(
@@ -108,6 +127,7 @@ public class ContentController : ControllerBase
         [FromBody] BulkApproveRequest request,
         CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Processing bulk approval for {Count} decisions", request.Decisions.Count);
         var command = new BulkApproveCommand(request.Decisions);
         var result = await _mediator.Send(command, cancellationToken);
         return Ok(result);
@@ -125,6 +145,7 @@ public class ContentController : ControllerBase
         // Enum.TryParse = safe parse that returns true/false instead of throwing.
         // `out var parsed` = if successful, the parsed enum value is assigned to `parsed`.
         // Like: const parsed = tryParseEnum(status); if (parsed) { ... }
+        _logger.LogDebug("Retrieving content by status: {Status}", status ?? "all");
         var items = status != null && Enum.TryParse<ContentStatus>(status, true, out var parsed)
             ? await _contentRepository.GetByStatusAsync(parsed, cancellationToken)
             : await _contentRepository.GetAllAsync(cancellationToken);
@@ -145,12 +166,82 @@ public class ContentController : ControllerBase
     {
         var item = await _contentRepository.GetByIdAsync(id, cancellationToken);
         // `is null` = null check (like === null in JS). `is` is pattern matching syntax.
-        if (item is null) return NotFound();
+        if (item is null)
+        {
+            _logger.LogDebug("Content item {Id} not found", id);
+            return NotFound();
+        }
 
         return Ok(new ContentItemDto(
             item.Id, item.BotName, item.Category, item.ContentType,
             item.Status, item.TextContent, item.MediaPath,
             item.ScheduledAt, item.PublishedAt, item.CreatedAt));
+    }
+
+    /// <summary>
+    /// Publish a content item to a social media platform.
+    /// Moves status from Queued/Rendered → Publishing → Published/Failed.
+    /// </summary>
+    [HttpPost("{id:guid}/publish")]
+    public async Task<ActionResult<PublishContentResultDto>> PublishContent(
+        Guid id,
+        [FromBody] PublishRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Publishing content {Id} to account {AccountId}", id, request.SocialAccountId);
+        var command = new PublishContentCommand(id, request.SocialAccountId);
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Render a content item into a social media image using a template.
+    /// Moves status from Generated → Rendered.
+    /// </summary>
+    [HttpPost("{id:guid}/render")]
+    public async Task<ActionResult<RenderContentResultDto>> RenderContent(
+        Guid id,
+        [FromBody] RenderRequestDto? request = null,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Rendering content {Id} (template: {Template})", id, request?.TemplateName ?? "default");
+        var command = new RenderContentCommand(id, request?.TemplateName, request?.Parameters);
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// List available rendering templates, optionally filtered by content type.
+    /// </summary>
+    [HttpGet("templates")]
+    public ActionResult<IReadOnlyList<AvailableTemplateDto>> GetTemplates(
+        [FromQuery] string? contentType,
+        // IMediaRenderer injected per-request via [FromServices] — like req.app.get('renderer') in Express.
+        [FromServices] IMediaRenderer mediaRenderer)
+    {
+        _logger.LogDebug("Retrieving templates (contentType filter: {ContentType})", contentType ?? "all");
+        var allTemplates = new List<AvailableTemplateDto>();
+
+        // If content type specified, return templates for that type only
+        if (contentType != null && Enum.TryParse<ContentType>(contentType, true, out var ct))
+        {
+            var names = mediaRenderer.GetAvailableTemplates(ct);
+            allTemplates.AddRange(names.Select(n => new AvailableTemplateDto(
+                n, $"Template for {ct}", new[] { ct.ToString() })));
+        }
+        else
+        {
+            // Return all templates grouped by their supported types
+            foreach (var type in new[] { ContentType.Image, ContentType.Carousel })
+            {
+                var names = mediaRenderer.GetAvailableTemplates(type);
+                allTemplates.AddRange(names.Select(n => new AvailableTemplateDto(
+                    n, $"Template for {type}", new[] { type.ToString() })));
+            }
+        }
+
+        // Deduplicate by name (e.g., "minimal" appears for both Image and Carousel)
+        return Ok(allTemplates.DistinctBy(t => t.Name).ToList());
     }
 
     /// <summary>
@@ -160,6 +251,7 @@ public class ContentController : ControllerBase
     public async Task<ActionResult<Dictionary<string, int>>> GetStats(
         CancellationToken cancellationToken)
     {
+        _logger.LogDebug("Retrieving content stats dashboard");
         var stats = new Dictionary<string, int>();
         // Enum.GetValues<T>() = gets all enum members as an array.
         // Like Object.values(ContentStatus) in JS.
@@ -172,15 +264,6 @@ public class ContentController : ControllerBase
     }
 }
 
-// Request DTOs
-public record ImportContentRequest(IReadOnlyList<ImportContentItem> Items);
-
-public record ImportContentItem(
-    string BotName,
-    string Category,
-    string ContentType,
-    string TextContent,
-    DateTime? ScheduledAt = null,
-    Dictionary<string, string>? Properties = null);
-
+// Request DTOs — ImportContentRequest and ImportContentItemDto moved to Application/DTOs/ContentDtos.cs
+// so FluentValidation validators in the Application layer can reference them.
 public record BulkApproveRequest(IReadOnlyList<ApprovalDecisionDto> Decisions);

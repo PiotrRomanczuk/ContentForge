@@ -1,0 +1,241 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ────────────────────────────────────────────────────────
+   Forge Midnight Design System
+   A dark-first design system for ContentForge.
+   Surface hierarchy uses background-color shifts instead
+   of hard borders. Pure white (#fff) is never used --
+   the lightest text color is on-background (#dee5ff).
+   ──────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Forge Midnight surfaces ─────────────────────────── */
+  --fm-background: #060e20;
+  --fm-surface: #060e20;
+  --fm-surface-container-low: #091328;
+  --fm-surface-container: #0f1930;
+  --fm-surface-container-high: #141f38;
+  --fm-surface-container-highest: #192540;
+  --fm-surface-bright: #1f2b49;
+  --fm-surface-variant: #192540;
+
+  /* ── Forge Midnight text ─────────────────────────────── */
+  --fm-on-background: #dee5ff;
+  --fm-on-surface: #dee5ff;
+  --fm-on-surface-variant: #a3aac4;
+
+  /* ── Forge Midnight accents ──────────────────────────── */
+  --fm-primary: #a3a6ff;
+  --fm-primary-dim: #6063ee;
+  --fm-primary-container: #9396ff;
+  --fm-secondary: #a98ffd;
+  --fm-secondary-container: #4d329b;
+
+  /* ── Forge Midnight feedback ─────────────────────────── */
+  --fm-error: #ff6e84;
+  --fm-error-container: #a70138;
+  --fm-outline: #6d758c;
+  --fm-outline-variant: #40485d;
+
+  /* ── shadcn/ui token mapping (dark-first) ────────────── */
+  --background: var(--fm-background);
+  --foreground: var(--fm-on-background);
+
+  --card: var(--fm-surface-container);
+  --card-foreground: var(--fm-on-surface);
+
+  --popover: var(--fm-surface-container-high);
+  --popover-foreground: var(--fm-on-surface);
+
+  --primary: var(--fm-primary);
+  --primary-foreground: var(--fm-background);
+
+  --secondary: var(--fm-secondary);
+  --secondary-foreground: var(--fm-on-background);
+
+  --muted: var(--fm-surface-container-high);
+  --muted-foreground: var(--fm-on-surface-variant);
+
+  --accent: var(--fm-surface-bright);
+  --accent-foreground: var(--fm-on-surface);
+
+  --destructive: var(--fm-error);
+  --destructive-foreground: var(--fm-error);
+
+  --border: var(--fm-outline-variant);
+  --input: var(--fm-surface-container-high);
+  --ring: var(--fm-primary-dim);
+
+  --chart-1: var(--fm-primary);
+  --chart-2: var(--fm-secondary);
+  --chart-3: #5ac8fa;
+  --chart-4: #ffd60a;
+  --chart-5: var(--fm-error);
+
+  --radius: 0.625rem;
+
+  /* ── Sidebar tokens ──────────────────────────────────── */
+  --sidebar: var(--fm-surface-container-low);
+  --sidebar-foreground: var(--fm-on-surface);
+  --sidebar-primary: var(--fm-primary);
+  --sidebar-primary-foreground: var(--fm-background);
+  --sidebar-accent: var(--fm-primary);
+  --sidebar-accent-foreground: var(--fm-on-surface);
+  --sidebar-border: var(--fm-outline-variant);
+  --sidebar-ring: var(--fm-primary-dim);
+}
+
+/* The .dark class maps to the same tokens since we are dark-first.
+   This ensures shadcn components that check .dark still behave. */
+.dark {
+  --background: var(--fm-background);
+  --foreground: var(--fm-on-background);
+
+  --card: var(--fm-surface-container);
+  --card-foreground: var(--fm-on-surface);
+
+  --popover: var(--fm-surface-container-high);
+  --popover-foreground: var(--fm-on-surface);
+
+  --primary: var(--fm-primary);
+  --primary-foreground: var(--fm-background);
+
+  --secondary: var(--fm-secondary);
+  --secondary-foreground: var(--fm-on-background);
+
+  --muted: var(--fm-surface-container-high);
+  --muted-foreground: var(--fm-on-surface-variant);
+
+  --accent: var(--fm-surface-bright);
+  --accent-foreground: var(--fm-on-surface);
+
+  --destructive: var(--fm-error);
+  --destructive-foreground: var(--fm-error);
+
+  --border: var(--fm-outline-variant);
+  --input: var(--fm-surface-container-high);
+  --ring: var(--fm-primary-dim);
+
+  --chart-1: var(--fm-primary);
+  --chart-2: var(--fm-secondary);
+  --chart-3: #5ac8fa;
+  --chart-4: #ffd60a;
+  --chart-5: var(--fm-error);
+
+  --sidebar: var(--fm-surface-container-low);
+  --sidebar-foreground: var(--fm-on-surface);
+  --sidebar-primary: var(--fm-primary);
+  --sidebar-primary-foreground: var(--fm-background);
+  --sidebar-accent: var(--fm-primary);
+  --sidebar-accent-foreground: var(--fm-on-surface);
+  --sidebar-border: var(--fm-outline-variant);
+  --sidebar-ring: var(--fm-primary-dim);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* ── Forge Midnight custom color utilities ────────────── */
+  --color-fm-background: var(--fm-background);
+  --color-fm-surface: var(--fm-surface);
+  --color-fm-surface-container-low: var(--fm-surface-container-low);
+  --color-fm-surface-container: var(--fm-surface-container);
+  --color-fm-surface-container-high: var(--fm-surface-container-high);
+  --color-fm-surface-container-highest: var(--fm-surface-container-highest);
+  --color-fm-surface-bright: var(--fm-surface-bright);
+  --color-fm-surface-variant: var(--fm-surface-variant);
+
+  --color-fm-on-background: var(--fm-on-background);
+  --color-fm-on-surface: var(--fm-on-surface);
+  --color-fm-on-surface-variant: var(--fm-on-surface-variant);
+
+  --color-fm-primary: var(--fm-primary);
+  --color-fm-primary-dim: var(--fm-primary-dim);
+  --color-fm-primary-container: var(--fm-primary-container);
+  --color-fm-secondary: var(--fm-secondary);
+  --color-fm-secondary-container: var(--fm-secondary-container);
+
+  --color-fm-error: var(--fm-error);
+  --color-fm-error-container: var(--fm-error-container);
+  --color-fm-outline: var(--fm-outline);
+  --color-fm-outline-variant: var(--fm-outline-variant);
+
+  /* ── Font families ───────────────────────────────────── */
+  --font-display: 'Manrope', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+/* ── Base layer ────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-body);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+/* ── Utility classes ───────────────────────────────────── */
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+  .font-body {
+    font-family: var(--font-body);
+  }
+  /* Ghost border: used where accessibility needs a subtle edge */
+  .border-ghost {
+    border-color: color-mix(in srgb, var(--fm-outline-variant) 15%, transparent);
+  }
+  /* Ambient shadow for floating elements */
+  .shadow-ambient {
+    box-shadow: 0 20px 80px rgba(0, 0, 0, 0.45);
+  }
+  /* Glow effect for primary buttons on hover */
+  .glow-primary {
+    box-shadow: 0 0 20px color-mix(in srgb, var(--fm-primary) 20%, transparent);
+  }
+}

@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 
 namespace ContentForge.API.Controllers;
@@ -30,7 +31,10 @@ public class AuthController : ControllerBase
     // [HttpPost("token")] = POST /auth/token. Like router.post('/token', handler).
     // [FromBody] = parse JSON request body into the TokenRequest record. Like express.json() middleware.
     // IActionResult = the return type for HTTP responses (can be 200, 401, 404, etc.)
+    // H-2: Rate limit auth endpoint to prevent brute-force API key guessing.
+    // EnableRateLimiting("auth") = apply the "auth" policy (5 req/min per IP).
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     [HttpPost("token")]
     public IActionResult GetToken([FromBody] TokenRequest request)
     {

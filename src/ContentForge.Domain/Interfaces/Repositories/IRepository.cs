@@ -16,4 +16,8 @@ public interface IRepository<T> where T : class
     Task UpdateAsync(T entity, CancellationToken cancellationToken = default);
     Task DeleteAsync(T entity, CancellationToken cancellationToken = default);
     Task<int> CountAsync(CancellationToken cancellationToken = default);
+    // Flush all pending changes to the database in a single transaction.
+    // Like calling prisma.$transaction() — groups multiple Add/Update/Delete calls
+    // into one DB round-trip. Use this when batching multiple operations.
+    Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

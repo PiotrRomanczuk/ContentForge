@@ -1,4 +1,5 @@
 using ContentForge.Application.DTOs;
+using ContentForge.Domain.Entities;
 using ContentForge.Domain.Enums;
 using ContentForge.Domain.Interfaces.Repositories;
 using MediatR;
@@ -35,6 +36,11 @@ public class BulkApproveHandler : IRequestHandler<BulkApproveCommand, BulkApprov
         var rejected = 0;
         var edited = 0;
 
+        // Batch all updates: load entities, mutate in memory, flush once at the end.
+        // EF Core tracks changes on loaded entities automatically (like Mongoose's dirty tracking).
+        // This avoids N individual SaveChanges calls — one round-trip instead of N.
+        var itemsToUpdate = new List<ContentItem>();
+
         foreach (var decision in request.Decisions)
         {
             var item = await _contentRepository.GetByIdAsync(decision.ContentItemId, cancellationToken);
@@ -63,8 +69,12 @@ public class BulkApproveHandler : IRequestHandler<BulkApproveCommand, BulkApprov
             }
 
             item.UpdatedAt = DateTime.UtcNow;
-            await _contentRepository.UpdateAsync(item, cancellationToken);
+            itemsToUpdate.Add(item);
         }
+
+        // Single SaveChanges call — all changes flushed in one transaction.
+        if (itemsToUpdate.Count > 0)
+            await _contentRepository.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
             "Bulk approval complete: {Approved} approved, {Rejected} rejected, {Edited} edited",

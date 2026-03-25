@@ -12,10 +12,12 @@ namespace ContentForge.API.Controllers;
 public class BotsController : ControllerBase
 {
     private readonly IBotRegistry _botRegistry;
+    private readonly ILogger<BotsController> _logger;
 
-    public BotsController(IBotRegistry botRegistry)
+    public BotsController(IBotRegistry botRegistry, ILogger<BotsController> logger)
     {
         _botRegistry = botRegistry;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -26,6 +28,7 @@ public class BotsController : ControllerBase
             .Select(b => new BotInfoDto(b.Name, b.Category, b.Description, b.SupportedContentTypes))
             .ToList();
 
+        _logger.LogDebug("Retrieved {Count} bots", bots.Count);
         return Ok(bots);
     }
 
@@ -39,8 +42,15 @@ public class BotsController : ControllerBase
         [FromQuery] string contentType = "Image",
         [FromQuery] string language = "en")
     {
+        _logger.LogDebug("Requesting prompt template for bot '{BotName}', type '{ContentType}', language '{Language}'",
+            botName, contentType, language);
+
         var bot = _botRegistry.GetBot(botName);
-        if (bot is null) return NotFound(new { error = $"Bot '{botName}' not found." });
+        if (bot is null)
+        {
+            _logger.LogWarning("Bot '{BotName}' not found", botName);
+            return NotFound(new { error = $"Bot '{botName}' not found." });
+        }
 
         if (!Enum.TryParse<ContentType>(contentType, true, out var parsed))
             return BadRequest(new { error = $"Invalid content type: {contentType}" });
