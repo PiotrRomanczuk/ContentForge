@@ -20,6 +20,12 @@ public class ContentForgeDbContext : DbContext
     public DbSet<PublishRecord> PublishRecords => Set<PublishRecord>();
     public DbSet<ContentMetric> ContentMetrics => Set<ContentMetric>();
 
+    // Content graph feature — entity extraction, embeddings, and Louvain clusters.
+    public DbSet<ContentEntity> ContentEntities => Set<ContentEntity>();
+    public DbSet<ContentEmbedding> ContentEmbeddings => Set<ContentEmbedding>();
+    public DbSet<ContentCluster> ContentClusters => Set<ContentCluster>();
+    public DbSet<ContentClusterMember> ContentClusterMembers => Set<ContentClusterMember>();
+
     // Called once at startup to configure the DB schema. Like defining your Prisma schema in code.
     // `override` = overriding a virtual method from the base class (like overriding a method in JS class).
     protected override void OnModelCreating(ModelBuilder modelBuilder)

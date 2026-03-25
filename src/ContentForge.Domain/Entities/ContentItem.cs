@@ -29,4 +29,8 @@ public class ContentItem : BaseEntity
     // ICollection<T> is like T[] but with add/remove methods (think Set-like interface).
     public ICollection<PublishRecord> PublishRecords { get; set; } = new List<PublishRecord>();
     public ICollection<ContentMetric> Metrics { get; set; } = new List<ContentMetric>();
+
+    // Graph feature navigation properties — extracted entities and cluster memberships.
+    public ICollection<ContentEntity> Entities { get; set; } = new List<ContentEntity>();
+    public ICollection<ContentClusterMember> ClusterMemberships { get; set; } = new List<ContentClusterMember>();
 }
